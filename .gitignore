@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+db.sqlite3
+__pycache__/
+venv/
+
+# Never commit Google keys
+*service-account*.json
