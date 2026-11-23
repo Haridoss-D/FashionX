@@ -61,6 +61,7 @@ def _worksheet(title, headers):
         ws = sheet.worksheet(title)
     except gspread.WorksheetNotFound:
         ws = sheet.add_worksheet(title=title, rows=1000, cols=len(headers))
+        _state["ready"].discard(title)  # new tab: it needs its header row
     if title not in _state["ready"]:
         if ws.row_values(1) != headers:
             ws.update(values=[headers], range_name="A1")

@@ -28,6 +28,48 @@ function SalesChart({ data }) {
   );
 }
 
+function SheetsCard() {
+  const [info, setInfo] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState("");
+
+  const load = () => api("/admin/sheets/").then(setInfo).catch(() => setInfo({ error: "Could not check Google Sheets." }));
+  useEffect(() => { load(); }, []);
+
+  const syncNow = async () => {
+    setBusy(true);
+    setNote("");
+    try {
+      const r = await api("/admin/sheets/", { method: "POST", body: JSON.stringify({}) });
+      setNote(r.failed ? `${r.synced} copied, ${r.failed} failed. ${r.error} ${r.hint}` : `${r.synced} order(s) copied.${r.remaining ? ` ${r.remaining} still waiting, click again.` : ""}`);
+    } catch (err) {
+      setNote(err.data?.detail || "Sync failed.");
+    }
+    setBusy(false);
+    load();
+  };
+
+  if (!info) return null;
+  const ok = info.connected;
+  return (
+    <section className="adm-card adm-sheets">
+      <div>
+        <strong>Google Sheet:</strong>{" "}
+        {!info.configured ? <span className="adm-error">not set up (add GOOGLE_SHEET_ID and the key in Render)</span>
+          : ok ? <span className="adm-ok">connected to "{info.title}"</span>
+          : <span className="adm-error">not connected</span>}
+        {info.configured && <span className="adm-muted"> · {info.unsynced} order(s) not copied yet</span>}
+        {info.error && <p className="adm-error">{info.error}</p>}
+        {info.hint && <p className="adm-muted">{info.hint}</p>}
+        {note && <p role="status">{note}</p>}
+      </div>
+      {info.configured && (
+        <button className="adm-btn" onClick={syncNow} disabled={busy}>{busy ? "Copying..." : "Sync now"}</button>
+      )}
+    </section>
+  );
+}
+
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState("");
@@ -57,6 +99,8 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+
+      <SheetsCard />
 
       <div className="adm-grid">
         <section className="adm-card">

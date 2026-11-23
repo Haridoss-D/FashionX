@@ -71,3 +71,7 @@
   .adm-grid, .adm-form-grid { grid-template-columns: 1fr; }
   .adm-main { padding: 16px; }
 }
+
+.adm-sheets { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; font-size: 14px; }
+.adm-sheets p { margin-top: 4px; }
+.adm-ok { color: #1d7a4a; font-weight: 600; }

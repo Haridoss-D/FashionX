@@ -3,7 +3,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .admin_views import (
-    AdminCustomersView, AdminOrderListView, AdminOrderUpdateView, AdminProductViewSet, AdminStatsView,
+    AdminCustomersView, AdminOrderListView, AdminSheetsView, AdminOrderUpdateView, AdminProductViewSet, AdminStatsView,
 )
 from .account_views import LoginView, LogoutView, MeView, MyOrdersView, RegisterView
 from .payment_views import CancelPaymentView, RazorpayWebhookView, VerifyPaymentView
@@ -27,6 +27,7 @@ urlpatterns = [
     path("admin/orders/", AdminOrderListView.as_view()),
     path("admin/orders/<int:pk>/", AdminOrderUpdateView.as_view()),
     path("admin/customers/", AdminCustomersView.as_view()),
+    path("admin/sheets/", AdminSheetsView.as_view()),
     path("auth/register/", RegisterView.as_view()),
     path("auth/login/", LoginView.as_view()),
     path("auth/logout/", LogoutView.as_view()),
