@@ -1,7 +1,10 @@
+from datetime import timedelta
 from decimal import Decimal
 
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 
 class Profile(models.Model):
@@ -44,6 +47,9 @@ class Product(models.Model):
     stock = models.PositiveIntegerField(default=0)
     is_featured = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    return_days = models.PositiveSmallIntegerField(
+        default=7, help_text="Days allowed for returns. 0 means no returns."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -96,12 +102,22 @@ class Order(models.Model):
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     shipping = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    estimated_delivery = models.DateField(null=True, blank=True)
 
     synced_to_sheet = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-created_at"]
+
+    @property
+    def cancel_deadline(self):
+        return self.created_at + timedelta(hours=24)
+
+    @property
+    def can_cancel(self):
+        """Customers may cancel within 24 hours, until the order is shipped."""
+        return self.status == self.Status.PENDING and timezone.now() < self.cancel_deadline
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -124,3 +140,21 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.name} x {self.quantity}"
+
+
+class Review(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reviews")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews")
+    rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    comment = models.TextField(blank=True, max_length=1000)
+    is_visible = models.BooleanField(default=True, help_text="Untick to hide a review from the shop.")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["product", "user"], name="one_review_per_user_and_product"),
+        ]
+
+    def __str__(self):
+        return f"{self.product} - {self.rating} stars"

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Order, OrderItem, Product
+from .models import Category, Order, OrderItem, Product, Review
 
 
 @admin.register(Category)
@@ -28,3 +28,11 @@ class OrderAdmin(admin.ModelAdmin):
     list_filter = ("status", "payment_method", "payment_status")
     search_fields = ("order_number", "full_name", "email", "phone")
     inlines = [OrderItemInline]
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ("product", "user", "rating", "is_visible", "created_at")
+    list_filter = ("is_visible", "rating")
+    list_editable = ("is_visible",)
+    search_fields = ("product__name", "comment")

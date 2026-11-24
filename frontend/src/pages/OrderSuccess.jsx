@@ -1,6 +1,7 @@
 import { Link, useLocation, useParams } from "react-router-dom";
 import { CheckCircle2 } from "lucide-react";
 import { formatPrice } from "../api.js";
+import { fmtDay } from "../utils.js";
 
 export default function OrderSuccess() {
   const { orderNumber } = useParams();
@@ -16,8 +17,14 @@ export default function OrderSuccess() {
         {paidOnline && state?.total && <> We received {formatPrice(state.total)}.</>}
         {!paidOnline && state?.total && <> Please keep {formatPrice(state.total)} ready to pay on delivery.</>}
       </p>
-      <p className="muted">We will contact you on your mobile number to confirm shipping.</p>
-      <Link to="/products" className="btn btn-dark">Continue shopping</Link>
+      {state?.delivery && <p><strong>Deliver by {fmtDay(state.delivery)}</strong></p>}
+      <p className="muted">
+        You can cancel this order within 24 hours, until it ships. Use the mobile number you gave at checkout.
+      </p>
+      <div className="btn-row">
+        <Link to={`/track?order=${orderNumber}`} className="btn btn-gold">Track order</Link>
+        <Link to="/products" className="btn btn-dark">Continue shopping</Link>
+      </div>
     </div>
   );
 }

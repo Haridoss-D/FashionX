@@ -20,13 +20,19 @@ export default function Products() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(params.get("search") || "");
   const [maxPrice, setMaxPrice] = useState(5000);
   const [size, setSize] = useState("");
   const [color, setColor] = useState("");
 
   const selectedCats = (params.get("category") || "").split(",").filter(Boolean);
   const sort = params.get("sort") || "popularity";
+
+  // The search box in the top menu changes ?search= in the address
+  const urlSearch = params.get("search") || "";
+  useEffect(() => {
+    setSearch(urlSearch);
+  }, [urlSearch]);
 
   const setParam = (key, value) => {
     const next = new URLSearchParams(params);

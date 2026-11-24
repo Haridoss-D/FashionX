@@ -62,6 +62,7 @@ export default function AdminOrders() {
                       <select value={o.payment_status} onChange={(e) => update(o, { payment_status: e.target.value })} aria-label={`Payment status of ${o.order_number}`}>
                         {Object.keys(PAY_LABEL).map((p) => <option key={p} value={p}>{PAY_LABEL[p]}</option>)}
                       </select>
+                      {o.status === "CANCELLED" && o.payment_status === "PAID" && <><br /><small className="adm-error">Refund due</small></>}
                     </td>
                     <td>
                       <select value={o.status} disabled={o.status === "CANCELLED"} onChange={(e) => update(o, { status: e.target.value })} aria-label={`Status of ${o.order_number}`}>

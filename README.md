@@ -33,6 +33,14 @@ npm run dev
 ```
 Open http://localhost:5173
 
+## Shopping features
+Product pages (`/product/<name>`) with description, reviews, similar products, delivery date, return policy,
+Buy Now, share link and wishlist. Search in the top menu. Order tracking at `/track`, and customers can cancel
+within 24 hours until the order ships. Reviews are allowed only after an order is delivered; hide a review in the
+Django admin (`/admin/` on the backend) by unticking "Is visible". Change delivery speed in `backend/store/delivery.py`.
+After copying these files run `python manage.py makemigrations store` and `python manage.py migrate`,
+then commit the new file in `backend/store/migrations/`.
+
 ## Online payment (Razorpay test mode)
 1. Dashboard > Account & Settings > API Keys > Generate Test Key.
 2. Put the two keys in `backend/.env` as `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`, then restart the backend.

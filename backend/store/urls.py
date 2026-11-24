@@ -7,7 +7,8 @@ from .admin_views import (
 )
 from .account_views import LoginView, LogoutView, MeView, MyOrdersView, RegisterView
 from .payment_views import CancelPaymentView, RazorpayWebhookView, VerifyPaymentView
-from .views import CategoryViewSet, OrderCreateView, ProductViewSet
+from .tracking_views import CancelOrderView, TrackOrderView
+from .views import CategoryViewSet, OrderCreateView, ProductViewSet, delivery_info
 
 router = DefaultRouter()
 router.register("categories", CategoryViewSet, basename="category")
@@ -23,6 +24,9 @@ urlpatterns = [
     path("health/", health),
     path("orders/", OrderCreateView.as_view()),
     path("orders/mine/", MyOrdersView.as_view()),
+    path("orders/track/", TrackOrderView.as_view()),
+    path("orders/cancel/", CancelOrderView.as_view()),
+    path("delivery/", delivery_info),
     path("admin/stats/", AdminStatsView.as_view()),
     path("admin/orders/", AdminOrderListView.as_view()),
     path("admin/orders/<int:pk>/", AdminOrderUpdateView.as_view()),

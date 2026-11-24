@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
-import { LogOut, Package, User } from "lucide-react";
+import { Heart, LogOut, Package, User } from "lucide-react";
 import { api, firstError, formatPrice } from "../api.js";
 import { useAuth } from "../context/AuthContext.jsx";
 
@@ -86,6 +86,7 @@ function Orders() {
             </div>
             <span className={`status status-${o.status.toLowerCase()}`}>{STATUS_LABEL[o.status] || o.status}</span>
             <strong>{formatPrice(o.total)}</strong>
+            <Link className="btn-outline" to={`/track?order=${o.order_number}`}>Track</Link>
             <button className="btn-outline" onClick={() => setOpen(open === o.order_number ? null : o.order_number)}>
               {open === o.order_number ? "Hide Details" : "View Details"}
             </button>
@@ -130,6 +131,7 @@ export default function Account() {
         <nav aria-label="Account">
           <button className={tab === "profile" ? "on" : ""} onClick={() => setParams({})}><User size={16} /> My Profile</button>
           <button className={tab === "orders" ? "on" : ""} onClick={() => setParams({ tab: "orders" })}><Package size={16} /> My Orders</button>
+          <Link to="/wishlist"><Heart size={16} /> Wishlist</Link>
           <button onClick={logout}><LogOut size={16} /> Logout</button>
         </nav>
       </aside>

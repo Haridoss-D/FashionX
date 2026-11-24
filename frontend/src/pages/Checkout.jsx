@@ -46,7 +46,9 @@ export default function Checkout() {
   if (items.length === 0) return <Navigate to="/cart" replace />;
 
   const finish = (order, method) => {
-    navigate(`/order-success/${order.order_number}`, { state: { total: order.total, method } });
+    navigate(`/order-success/${order.order_number}`, {
+      state: { total: order.total, method, delivery: order.estimated_delivery },
+    });
     clearCart();
   };
 

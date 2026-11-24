@@ -46,9 +46,9 @@ class AdminProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             "id", "name", "slug", "category", "category_name", "description", "price", "mrp",
-            "image_url", "sizes", "colors", "stock", "is_featured", "is_active",
+            "image_url", "sizes", "colors", "stock", "is_featured", "is_active", "return_days",
         ]
-        extra_kwargs = {"price": {"min_value": 1}, "mrp": {"min_value": 1}}
+        extra_kwargs = {"price": {"min_value": 1}, "mrp": {"min_value": 1}, "return_days": {"max_value": 60}}
 
     def _clean_list(self, value):
         if not isinstance(value, list) or not all(isinstance(v, str) for v in value):

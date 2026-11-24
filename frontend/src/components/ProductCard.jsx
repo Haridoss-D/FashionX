@@ -1,15 +1,22 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Heart, Star } from "lucide-react";
 import { useCart } from "../context/CartContext.jsx";
+import { useWishlist } from "../context/WishlistContext.jsx";
 import { formatPrice } from "../api.js";
 
 export default function ProductCard({ product }) {
   const { addItem } = useCart();
-  const [liked, setLiked] = useState(false);
+  const { has, toggle } = useWishlist();
   const [added, setAdded] = useState(false);
 
+  const liked = has(product.id);
+  const out = product.stock < 1;
+  const needsSize = product.sizes?.length > 0;
+  const page = `/product/${product.slug}`;
+
   const handleAdd = () => {
-    addItem(product, product.sizes?.[0] || "", product.colors?.[0] || "");
+    addItem(product, "", product.colors?.[0] || "");
     setAdded(true);
     setTimeout(() => setAdded(false), 1200);
   };
@@ -20,25 +27,34 @@ export default function ProductCard({ product }) {
         {product.discount_percent > 0 && <span className="tag">-{product.discount_percent}%</span>}
         <button
           className={`heart ${liked ? "on" : ""}`}
-          onClick={() => setLiked(!liked)}
+          onClick={() => toggle(product.id)}
           aria-label={liked ? "Remove from wishlist" : "Add to wishlist"}
+          aria-pressed={liked}
         >
           <Heart size={16} fill={liked ? "currentColor" : "none"} />
         </button>
-        <img src={product.image_url} alt={product.name} loading="lazy" />
+        <Link to={page} aria-label={product.name}>
+          <img src={product.image_url} alt={product.name} loading="lazy" />
+        </Link>
       </div>
       <div className="card-body">
-        <h3>{product.name}</h3>
+        <h3><Link to={page}>{product.name}</Link></h3>
         <p className="price">
           {formatPrice(product.price)}
           {product.mrp && <s>{formatPrice(product.mrp)}</s>}
         </p>
-        <p className="rating">
-          <Star size={13} fill="currentColor" /> {product.rating} <span>({product.rating_count})</span>
-        </p>
-        <button className="btn btn-dark btn-block" onClick={handleAdd}>
-          {added ? "Added" : "Add to Cart"}
-        </button>
+        {product.rating_count > 0 && (
+          <p className="rating">
+            <Star size={13} fill="currentColor" /> {product.rating} <span>({product.rating_count})</span>
+          </p>
+        )}
+        {out ? (
+          <button className="btn btn-dark btn-block" disabled>Out of stock</button>
+        ) : needsSize ? (
+          <Link to={page} className="btn btn-dark btn-block center">Select size</Link>
+        ) : (
+          <button className="btn btn-dark btn-block" onClick={handleAdd}>{added ? "Added" : "Add to Cart"}</button>
+        )}
       </div>
     </article>
   );

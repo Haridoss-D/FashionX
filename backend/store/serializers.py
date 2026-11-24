@@ -21,7 +21,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = [
             "id", "name", "slug", "description", "category", "category_slug",
             "price", "mrp", "discount_percent", "image_url", "sizes", "colors",
-            "rating", "rating_count", "stock", "is_featured",
+            "rating", "rating_count", "stock", "is_featured", "return_days",
         ]
 
 
@@ -34,6 +34,7 @@ from decimal import Decimal
 from django.db import transaction
 
 from . import payments
+from .delivery import delivery_window
 from .models import Order, OrderItem
 
 FREE_SHIPPING_ABOVE = Decimal("999")
@@ -63,11 +64,12 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         model = Order
         fields = [
             "id", "order_number", "full_name", "email", "phone", "address", "city", "state",
-            "pin_code", "payment_method", "payment_status", "status", "razorpay_order_id",
+            "pin_code", "payment_method", "payment_status", "status", "razorpay_order_id", "estimated_delivery",
             "subtotal", "shipping", "total", "items",
         ]
         read_only_fields = [
-            "id", "order_number", "payment_status", "status", "razorpay_order_id", "subtotal", "shipping", "total",
+            "id", "order_number", "payment_status", "status", "razorpay_order_id", "estimated_delivery",
+            "subtotal", "shipping", "total",
         ]
 
     def validate_phone(self, value):
@@ -115,7 +117,8 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         user = request.user if request and request.user.is_authenticated else None
         order = Order.objects.create(
-            **validated_data, user=user, subtotal=subtotal, shipping=shipping, total=subtotal + shipping
+            **validated_data, user=user, subtotal=subtotal, shipping=shipping, total=subtotal + shipping,
+            estimated_delivery=delivery_window()[1],
         )
         for product, item in lines:
             OrderItem.objects.create(
@@ -133,3 +136,25 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({"payment_method": [str(exc)]})
             order.save(update_fields=["razorpay_order_id"])
         return order
+
+
+# ---------------------------------------------------------------------------
+# Reviews
+# ---------------------------------------------------------------------------
+from .models import Review  # noqa: E402
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Review
+        fields = ["id", "name", "rating", "comment", "created_at"]
+
+    def get_name(self, obj):
+        return obj.user.first_name or "Customer"
+
+
+class ReviewInputSerializer(serializers.Serializer):
+    rating = serializers.IntegerField(min_value=1, max_value=5)
+    comment = serializers.CharField(required=False, allow_blank=True, max_length=1000)

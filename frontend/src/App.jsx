@@ -8,6 +8,9 @@ import Checkout from "./pages/Checkout.jsx";
 import OrderSuccess from "./pages/OrderSuccess.jsx";
 import Auth from "./pages/Auth.jsx";
 import Account from "./pages/Account.jsx";
+import ProductDetail from "./pages/ProductDetail.jsx";
+import Wishlist from "./pages/Wishlist.jsx";
+import TrackOrder from "./pages/TrackOrder.jsx";
 import AdminApp from "./admin/AdminApp.jsx";
 
 export default function App() {
@@ -29,6 +32,9 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/product/:slug" element={<ProductDetail />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/track" element={<TrackOrder />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-success/:orderNumber" element={<OrderSuccess />} />

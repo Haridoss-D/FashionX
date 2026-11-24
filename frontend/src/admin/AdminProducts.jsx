@@ -3,7 +3,7 @@ import { api, firstError, formatPrice } from "../api.js";
 
 const BLANK = {
   name: "", category: "", price: "", mrp: "", image_url: "", sizes: "", colors: "",
-  stock: 0, description: "", is_featured: false, is_active: true,
+  stock: 0, return_days: 7, description: "", is_featured: false, is_active: true,
 };
 
 function ProductForm({ product, categories, onSaved, onCancel }) {
@@ -27,7 +27,8 @@ function ProductForm({ product, categories, onSaved, onCancel }) {
       name: form.name, category: Number(form.category), price: form.price,
       mrp: form.mrp === "" ? null : form.mrp, image_url: form.image_url,
       sizes: list(form.sizes), colors: list(form.colors), stock: Number(form.stock),
-      description: form.description, is_featured: form.is_featured, is_active: form.is_active,
+      return_days: Number(form.return_days), description: form.description,
+      is_featured: form.is_featured, is_active: form.is_active,
     };
     try {
       await api(product ? `/admin/products/${product.id}/` : "/admin/products/", {
@@ -65,6 +66,15 @@ function ProductForm({ product, categories, onSaved, onCancel }) {
         {field("price", "Selling price (₹)", { type: "number", min: 1, step: "0.01", required: true })}
         {field("mrp", "Original price (₹), only if on sale", { type: "number", min: 1, step: "0.01" })}
         {field("stock", "Stock", { type: "number", min: 0, required: true })}
+        <label className="adm-field">
+          <span>Returns</span>
+          <select value={form.return_days} onChange={set("return_days")}>
+            <option value={0}>No returns</option>
+            <option value={7}>7-day returns</option>
+            <option value={15}>15-day returns</option>
+            <option value={30}>30-day returns</option>
+          </select>
+        </label>
         {field("image_url", "Image link (https://...)", { type: "url" })}
         {field("sizes", "Sizes, separated by commas (S, M, L)")}
         {field("colors", "Colors, separated by commas (Black, Beige)")}
