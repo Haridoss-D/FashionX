@@ -7,7 +7,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .account_serializers import OrderHistoryItemSerializer
-from .models import Order, Product
+from .inventory import restore_item_stock
+from .models import Order
 from .throttles import TrackThrottle
 
 NOT_FOUND = {"detail": "We could not find an order with these details. Check the order number and mobile number."}
@@ -54,7 +55,7 @@ def cancel_order(order):
     if not order.can_cancel:
         return False
     for item in order.items.exclude(product__isnull=True):
-        Product.objects.filter(pk=item.product_id).update(stock=F("stock") + item.quantity)
+        restore_item_stock(item)
     order.status = Order.Status.CANCELLED
     order.save(update_fields=["status"])  # saving also refreshes the Google Sheet
     return True

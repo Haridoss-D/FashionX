@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Category, Product
+from .models import Category, Product, ProductVariant
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -11,10 +11,20 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ["id", "name", "slug", "image_url", "product_count"]
 
 
+class VariantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductVariant
+        fields = ["id", "color", "size", "price", "mrp", "stock", "image_url"]
+
+
 class ProductSerializer(serializers.ModelSerializer):
     category = serializers.CharField(source="category.name", read_only=True)
     category_slug = serializers.CharField(source="category.slug", read_only=True)
     discount_percent = serializers.IntegerField(read_only=True)
+    variants = serializers.SerializerMethodField()
+
+    def get_variants(self, obj):
+        return VariantSerializer([v for v in obj.variants.all() if v.is_active], many=True).data
 
     class Meta:
         model = Product
@@ -22,6 +32,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "id", "name", "slug", "description", "category", "category_slug",
             "price", "mrp", "discount_percent", "image_url", "sizes", "colors",
             "rating", "rating_count", "stock", "is_featured", "return_days",
+            "highlights", "features", "specifications", "manufacturer_info", "variants",
         ]
 
 
@@ -34,6 +45,7 @@ from decimal import Decimal
 from django.db import transaction
 
 from . import payments
+from .inventory import sync_product_from_variants
 from .delivery import delivery_window
 from .models import Order, OrderItem
 
@@ -97,21 +109,35 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             id__in=[i["product_id"] for i in items], is_active=True
         )
         by_id = {p.id: p for p in products}
+        variants = {}  # product id -> {(color, size): variant}
+        for v in ProductVariant.objects.select_for_update().filter(product_id__in=list(by_id), is_active=True):
+            variants.setdefault(v.product_id, {})[(v.color, v.size)] = v
 
-        lines, subtotal = [], Decimal("0")
+        lines, subtotal, left = [], Decimal("0"), {}
         for item in items:
             product = by_id.get(item["product_id"])
             if not product:
                 raise serializers.ValidationError({"items": ["A product in your cart is no longer available."]})
-            if product.stock < item["quantity"]:
-                raise serializers.ValidationError(
-                    {"items": [f"Only {product.stock} left of {product.name}."]}
-                )
-            if product.sizes and item["size"] not in product.sizes:
-                raise serializers.ValidationError({"items": [f"Choose a valid size for {product.name}."]})
+            options = variants.get(product.id)
+            if options:  # this product has its own price and stock per colour and size
+                variant = options.get((item["color"], item["size"]))
+                if not variant:
+                    raise serializers.ValidationError(
+                        {"items": [f"Choose a valid colour and size for {product.name}."]}
+                    )
+                key, stock, unit_price = ("v", variant.id), variant.stock, variant.price
+            else:
+                variant = None
+                if product.sizes and item["size"] not in product.sizes:
+                    raise serializers.ValidationError({"items": [f"Choose a valid size for {product.name}."]})
+                key, stock, unit_price = ("p", product.id), product.stock, product.price
+            available = left.get(key, stock)
+            if available < item["quantity"]:
+                raise serializers.ValidationError({"items": [f"Only {available} left of {product.name}."]})
+            left[key] = available - item["quantity"]
             # Price always comes from the database, never from the browser
-            subtotal += product.price * item["quantity"]
-            lines.append((product, item))
+            subtotal += unit_price * item["quantity"]
+            lines.append((product, unit_price, item))
 
         shipping = Decimal("0") if subtotal >= FREE_SHIPPING_ABOVE else SHIPPING_FEE
         request = self.context.get("request")
@@ -120,13 +146,16 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             **validated_data, user=user, subtotal=subtotal, shipping=shipping, total=subtotal + shipping,
             estimated_delivery=delivery_window()[1],
         )
-        for product, item in lines:
+        for product, unit_price, item in lines:
             OrderItem.objects.create(
-                order=order, product=product, name=product.name, price=product.price,
+                order=order, product=product, name=product.name, price=unit_price,
                 quantity=item["quantity"], size=item["size"], color=item["color"],
             )
-            product.stock -= item["quantity"]
-            product.save(update_fields=["stock"])
+        for (kind, pk), remaining in left.items():
+            model = ProductVariant if kind == "v" else Product
+            model.objects.filter(pk=pk).update(stock=remaining)
+        for product_id in {p.id for p, _, _ in lines}:
+            sync_product_from_variants(product_id)  # refreshes the product's total stock
 
         if order.payment_method == Order.Payment.ONLINE:
             try:

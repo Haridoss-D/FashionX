@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link, NavLink, Route, Routes } from "react-router-dom";
-import { LayoutDashboard, LogOut, Package, ShoppingBag, Store, Users } from "lucide-react";
+import { Inbox, LayoutDashboard, LogOut, Package, ShoppingBag, Store, Users } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import Dashboard from "./Dashboard.jsx";
 import AdminProducts from "./AdminProducts.jsx";
 import AdminOrders from "./AdminOrders.jsx";
 import AdminCustomers from "./AdminCustomers.jsx";
+import AdminEnquiries from "./AdminEnquiries.jsx";
 import "./admin.css";
 
 function AdminLogin({ login }) {
@@ -73,6 +74,7 @@ export default function AdminApp() {
           <NavLink to="/admin/products" className={link}><Package size={16} /> Products</NavLink>
           <NavLink to="/admin/orders" className={link}><ShoppingBag size={16} /> Orders</NavLink>
           <NavLink to="/admin/customers" className={link}><Users size={16} /> Customers</NavLink>
+          <NavLink to="/admin/enquiries" className={link}><Inbox size={16} /> Enquiries</NavLink>
           <Link to="/"><Store size={16} /> View shop</Link>
           <button onClick={logout}><LogOut size={16} /> Logout</button>
         </nav>
@@ -83,6 +85,7 @@ export default function AdminApp() {
           <Route path="products" element={<AdminProducts />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="customers" element={<AdminCustomers />} />
+          <Route path="enquiries" element={<AdminEnquiries />} />
           <Route path="*" element={<p>Page not found.</p>} />
         </Routes>
       </main>

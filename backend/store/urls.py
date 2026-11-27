@@ -3,10 +3,11 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .admin_views import (
-    AdminCustomersView, AdminOrderListView, AdminSheetsView, AdminOrderUpdateView, AdminProductViewSet, AdminStatsView,
+    AdminCustomersView, AdminEnquiryListView, AdminEnquiryUpdateView, AdminOrderListView, AdminSheetsView, AdminOrderUpdateView, AdminProductViewSet, AdminStatsView,
 )
 from .account_views import LoginView, LogoutView, MeView, MyOrdersView, RegisterView
 from .payment_views import CancelPaymentView, RazorpayWebhookView, VerifyPaymentView
+from .enquiry_views import EnquiryCreateView
 from .tracking_views import CancelOrderView, TrackOrderView
 from .views import CategoryViewSet, OrderCreateView, ProductViewSet, delivery_info
 
@@ -27,6 +28,9 @@ urlpatterns = [
     path("orders/track/", TrackOrderView.as_view()),
     path("orders/cancel/", CancelOrderView.as_view()),
     path("delivery/", delivery_info),
+    path("enquiries/", EnquiryCreateView.as_view()),
+    path("admin/enquiries/", AdminEnquiryListView.as_view()),
+    path("admin/enquiries/<int:pk>/", AdminEnquiryUpdateView.as_view()),
     path("admin/stats/", AdminStatsView.as_view()),
     path("admin/orders/", AdminOrderListView.as_view()),
     path("admin/orders/<int:pk>/", AdminOrderUpdateView.as_view()),

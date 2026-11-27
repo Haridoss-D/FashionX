@@ -7,6 +7,7 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import F
 
+from .inventory import restore_item_stock
 from .models import Order
 
 API = "https://api.razorpay.com/v1"
@@ -73,7 +74,7 @@ def release_order(order):
     if order.payment_status != Order.PaymentStatus.PENDING or order.status != Order.Status.PENDING:
         return False
     for item in order.items.exclude(product__isnull=True):
-        item.product.__class__.objects.filter(pk=item.product_id).update(stock=F("stock") + item.quantity)
+        restore_item_stock(item)
     order.status = Order.Status.CANCELLED
     order.payment_status = Order.PaymentStatus.FAILED
     order.save(update_fields=["status", "payment_status"])

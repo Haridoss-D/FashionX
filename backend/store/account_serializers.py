@@ -44,6 +44,8 @@ class ProfileUpdateSerializer(serializers.Serializer):
     full_name = serializers.CharField(max_length=120, required=False)
     email = serializers.EmailField(required=False)
     phone = serializers.CharField(max_length=20, required=False)
+    notify_orders = serializers.BooleanField(required=False)
+    notify_offers = serializers.BooleanField(required=False)
 
     def validate_email(self, value):
         value = value.strip().lower()
@@ -61,9 +63,13 @@ class ProfileUpdateSerializer(serializers.Serializer):
         if "email" in data:
             user.email = user.username = data["email"]  # email is the login name
         user.save()
-        if "phone" in data:
-            profile, _ = Profile.objects.get_or_create(user=user)
-            profile.phone = data["phone"]
+        profile, _ = Profile.objects.get_or_create(user=user)
+        changed = False
+        for field in ("phone", "notify_orders", "notify_offers"):
+            if field in data:
+                setattr(profile, field, data[field])
+                changed = True
+        if changed:
             profile.save()
         return user
 

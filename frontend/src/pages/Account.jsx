@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
-import { Heart, LogOut, Package, User } from "lucide-react";
+import { Bell, Heart, LogOut, Package, User } from "lucide-react";
 import { api, firstError, formatPrice } from "../api.js";
 import { useAuth } from "../context/AuthContext.jsx";
 
@@ -132,6 +132,7 @@ export default function Account() {
           <button className={tab === "profile" ? "on" : ""} onClick={() => setParams({})}><User size={16} /> My Profile</button>
           <button className={tab === "orders" ? "on" : ""} onClick={() => setParams({ tab: "orders" })}><Package size={16} /> My Orders</button>
           <Link to="/wishlist"><Heart size={16} /> Wishlist</Link>
+          <Link to="/notifications"><Bell size={16} /> Notifications</Link>
           <button onClick={logout}><LogOut size={16} /> Logout</button>
         </nav>
       </aside>

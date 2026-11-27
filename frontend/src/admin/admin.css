@@ -75,3 +75,17 @@
 .adm-sheets { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; font-size: 14px; }
 .adm-sheets p { margin-top: 4px; }
 .adm-ok { color: #1d7a4a; font-weight: 600; }
+
+.adm-fieldset { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.adm-fieldset legend { font-weight: 600; font-size: 14px; padding: 0 6px; }
+.adm-check { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.adm-pair { display: grid; grid-template-columns: 1fr 1.6fr auto; gap: 8px; }
+.adm-pair input, .adm-vtable input:not([type="checkbox"]) { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font: inherit; font-size: 13px; background: #fff; }
+.adm-vtable td { padding: 6px; }
+.adm-vtable td:nth-child(1) input, .adm-vtable td:nth-child(2) input { min-width: 84px; }
+.adm-vtable td:nth-child(3) input, .adm-vtable td:nth-child(4) input, .adm-vtable td:nth-child(5) input { min-width: 84px; }
+.adm-vtable td:nth-child(6) input { min-width: 150px; }
+.adm-form .adm-btn-sm { align-self: flex-start; }
+.adm-enquiry { margin-bottom: 12px; }
+.adm-enquiry p { margin: 6px 0; font-size: 14px; }
+.adm-msg { white-space: pre-line; background: #faf8f4; padding: 10px 12px; border-radius: 6px; }

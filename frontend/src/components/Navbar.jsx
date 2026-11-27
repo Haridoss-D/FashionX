@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Heart, Search, ShoppingCart, User, X } from "lucide-react";
+import { Bell, ChevronDown, Headphones, Heart, Megaphone, Search, ShoppingCart, Store, User, X } from "lucide-react";
 import { useCart } from "../context/CartContext.jsx";
 import { useWishlist } from "../context/WishlistContext.jsx";
+import { CARE_LABEL } from "../siteConfig.js";
 
 export default function Navbar() {
   const { count } = useCart();
@@ -10,6 +11,21 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [searching, setSearching] = useState(false);
   const [term, setTerm] = useState("");
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef(null);
+
+  // Close the More menu when clicking elsewhere or pressing Escape
+  useEffect(() => {
+    if (!moreOpen) return undefined;
+    const onClick = (e) => !moreRef.current?.contains(e.target) && setMoreOpen(false);
+    const onKey = (e) => e.key === "Escape" && setMoreOpen(false);
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [moreOpen]);
 
   const submit = (e) => {
     e.preventDefault();
@@ -40,6 +56,22 @@ export default function Navbar() {
             {wishlist.count > 0 && <span className="badge">{wishlist.count}</span>}
           </Link>
           <Link to="/account" aria-label="My account"><User size={20} /></Link>
+
+          <div className="more" ref={moreRef}>
+            <button className="more-btn" aria-expanded={moreOpen} aria-haspopup="true" onClick={() => setMoreOpen(!moreOpen)}>
+              More <ChevronDown size={16} className={moreOpen ? "flip" : ""} />
+            </button>
+            {moreOpen && (
+              <div className="more-menu">
+                <strong>More</strong>
+                <Link to="/sell" onClick={() => setMoreOpen(false)}><Store size={18} /> Become a Seller</Link>
+                <Link to="/notifications" onClick={() => setMoreOpen(false)}><Bell size={18} /> Notification Settings</Link>
+                <Link to="/support" onClick={() => setMoreOpen(false)}><Headphones size={18} /> {CARE_LABEL}</Link>
+                <Link to="/advertise" onClick={() => setMoreOpen(false)}><Megaphone size={18} /> Advertise on FashionX</Link>
+              </div>
+            )}
+          </div>
+
           <Link to="/cart" aria-label="Cart" className="cart-link">
             <ShoppingCart size={20} />
             {count > 0 && <span className="badge">{count}</span>}

@@ -11,6 +11,8 @@ class Profile(models.Model):
     """Extra customer details that Django's built-in User does not have."""
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
     phone = models.CharField(max_length=20, blank=True)
+    notify_orders = models.BooleanField(default=True)   # order updates
+    notify_offers = models.BooleanField(default=False)  # offers and new arrivals (opt-in)
 
     def __str__(self):
         return f"Profile of {self.user}"
@@ -47,6 +49,10 @@ class Product(models.Model):
     stock = models.PositiveIntegerField(default=0)
     is_featured = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    highlights = models.JSONField(default=list, blank=True, help_text='Short key facts: [{"label": "Fabric", "value": "Cotton"}]')
+    features = models.TextField(blank=True, help_text="One feature per line")
+    specifications = models.JSONField(default=list, blank=True, help_text='Table rows: [{"label": "Fit", "value": "Regular"}]')
+    manufacturer_info = models.TextField(blank=True)
     return_days = models.PositiveSmallIntegerField(
         default=7, help_text="Days allowed for returns. 0 means no returns."
     )
@@ -158,3 +164,50 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.product} - {self.rating} stars"
+
+
+class ProductVariant(models.Model):
+    """One colour and size of a product, with its own price and stock."""
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants")
+    color = models.CharField(max_length=30, blank=True)
+    size = models.CharField(max_length=10, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    mrp = models.DecimalField("MRP (original price)", max_digits=10, decimal_places=2, null=True, blank=True)
+    stock = models.PositiveIntegerField(default=0)
+    image_url = models.URLField(blank=True, help_text="Photo for this colour")
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(fields=["product", "color", "size"], name="unique_variant_per_product"),
+        ]
+
+    def __str__(self):
+        return f"{self.product} {self.color} {self.size}".strip()
+
+
+class Enquiry(models.Model):
+    """Messages from the Become a Seller, Advertise and Customer Care forms."""
+
+    class Kind(models.TextChoices):
+        SELLER = "SELLER", "Become a seller"
+        ADVERTISE = "ADVERTISE", "Advertise"
+        SUPPORT = "SUPPORT", "Customer care"
+
+    kind = models.CharField(max_length=10, choices=Kind.choices)
+    name = models.CharField(max_length=120)
+    email = models.EmailField(blank=True)
+    phone = models.CharField(max_length=20)
+    business = models.CharField(max_length=120, blank=True)
+    order_number = models.CharField(max_length=20, blank=True)
+    message = models.TextField(max_length=2000)
+    is_done = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name_plural = "enquiries"
+
+    def __str__(self):
+        return f"{self.get_kind_display()} - {self.name}"

@@ -12,7 +12,10 @@ export default function ProductCard({ product }) {
 
   const liked = has(product.id);
   const out = product.stock < 1;
-  const needsSize = product.sizes?.length > 0;
+  const variants = product.variants || [];
+  const prices = variants.map((v) => Number(v.price));
+  const priceVaries = prices.length > 0 && Math.min(...prices) !== Math.max(...prices);
+  const needsOptions = variants.length > 0 || product.sizes?.length > 0;
   const page = `/product/${product.slug}`;
 
   const handleAdd = () => {
@@ -40,6 +43,7 @@ export default function ProductCard({ product }) {
       <div className="card-body">
         <h3><Link to={page}>{product.name}</Link></h3>
         <p className="price">
+          {priceVaries && <small className="from">From </small>}
           {formatPrice(product.price)}
           {product.mrp && <s>{formatPrice(product.mrp)}</s>}
         </p>
@@ -50,8 +54,8 @@ export default function ProductCard({ product }) {
         )}
         {out ? (
           <button className="btn btn-dark btn-block" disabled>Out of stock</button>
-        ) : needsSize ? (
-          <Link to={page} className="btn btn-dark btn-block center">Select size</Link>
+        ) : needsOptions ? (
+          <Link to={page} className="btn btn-dark btn-block center">Select options</Link>
         ) : (
           <button className="btn btn-dark btn-block" onClick={handleAdd}>{added ? "Added" : "Add to Cart"}</button>
         )}

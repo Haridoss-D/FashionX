@@ -18,14 +18,14 @@ export function CartProvider({ children }) {
     localStorage.setItem(KEY, JSON.stringify(items));
   }, [items]);
 
-  const addItem = (product, size = "", color = "") => {
+  const addItem = (product, size = "", color = "", variant = null) => {
     setItems((prev) => {
       const key = `${product.id}-${size}-${color}`;
       const found = prev.find((i) => i.key === key);
       if (found) return prev.map((i) => (i.key === key ? { ...i, qty: i.qty + 1 } : i));
       return [
         ...prev,
-        { key, id: product.id, name: product.name, price: Number(product.price), image: product.image_url, size, color, qty: 1 },
+        { key, id: product.id, name: product.name, price: Number(variant?.price ?? product.price), image: variant?.image_url || product.image_url, size, color, qty: 1 },
       ];
     });
   };

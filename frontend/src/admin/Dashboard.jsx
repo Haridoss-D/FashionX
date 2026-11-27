@@ -91,6 +91,9 @@ export default function Dashboard() {
   return (
     <>
       <h1>Dashboard</h1>
+      {stats.new_enquiries > 0 && (
+        <p><Link to="/admin/enquiries" className="adm-link">{stats.new_enquiries} new enquiries to review</Link></p>
+      )}
       <div className="adm-stats">
         {cards.map(([label, value, tone]) => (
           <div key={label} className={`adm-stat ${tone}`}>

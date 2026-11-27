@@ -48,7 +48,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = "slug"
 
     def get_queryset(self):
-        qs = Product.objects.filter(is_active=True).select_related("category")
+        qs = Product.objects.filter(is_active=True).select_related("category").prefetch_related("variants")
         p = self.request.query_params
 
         if p.get("ids"):
@@ -72,7 +72,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["get"])
     def similar(self, request, slug=None):
         product = self.get_object()
-        others = Product.objects.filter(is_active=True).exclude(pk=product.pk).select_related("category")
+        others = (
+            Product.objects.filter(is_active=True).exclude(pk=product.pk)
+            .select_related("category").prefetch_related("variants")
+        )
         picks = list(others.filter(category=product.category).order_by("-rating_count")[:4])
         if len(picks) < 4:  # small shop: fill the row with other popular products
             more = others.exclude(pk__in=[p.pk for p in picks]).order_by("-rating_count")[: 4 - len(picks)]

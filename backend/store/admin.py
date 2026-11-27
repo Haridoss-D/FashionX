@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Order, OrderItem, Product, Review
+from .models import Category, Enquiry, Order, OrderItem, Product, ProductVariant, Review
 
 
 @admin.register(Category)
@@ -9,8 +9,14 @@ class CategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
 
 
+class VariantInline(admin.TabularInline):
+    model = ProductVariant
+    extra = 0
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    inlines = [VariantInline]
     list_display = ("name", "category", "price", "stock", "is_featured", "is_active")
     list_filter = ("category", "is_featured", "is_active")
     search_fields = ("name",)
@@ -36,3 +42,11 @@ class ReviewAdmin(admin.ModelAdmin):
     list_filter = ("is_visible", "rating")
     list_editable = ("is_visible",)
     search_fields = ("product__name", "comment")
+
+
+@admin.register(Enquiry)
+class EnquiryAdmin(admin.ModelAdmin):
+    list_display = ("kind", "name", "phone", "business", "is_done", "created_at")
+    list_filter = ("kind", "is_done")
+    list_editable = ("is_done",)
+    search_fields = ("name", "phone", "email", "business", "message")

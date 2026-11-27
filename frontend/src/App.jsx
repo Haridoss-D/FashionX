@@ -11,6 +11,8 @@ import Account from "./pages/Account.jsx";
 import ProductDetail from "./pages/ProductDetail.jsx";
 import Wishlist from "./pages/Wishlist.jsx";
 import TrackOrder from "./pages/TrackOrder.jsx";
+import Notifications from "./pages/Notifications.jsx";
+import { Advertise, Seller, Support } from "./pages/Contact.jsx";
 import AdminApp from "./admin/AdminApp.jsx";
 
 export default function App() {
@@ -35,6 +37,10 @@ export default function App() {
           <Route path="/product/:slug" element={<ProductDetail />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/track" element={<TrackOrder />} />
+          <Route path="/sell" element={<Seller />} />
+          <Route path="/advertise" element={<Advertise />} />
+          <Route path="/support" element={<Support />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-success/:orderNumber" element={<OrderSuccess />} />

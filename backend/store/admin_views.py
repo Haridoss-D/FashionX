@@ -10,7 +10,7 @@ from .admin_serializers import (
     AdminOrderSerializer, AdminOrderUpdateSerializer, AdminProductSerializer,
 )
 from . import sheets
-from .models import Order, Product
+from .models import Enquiry, Order, Product
 
 # Orders that count: Cash on Delivery, or online orders that were actually paid.
 # (Abandoned online checkouts are left out, same as the Google Sheet.)
@@ -54,6 +54,7 @@ class AdminStatsView(StaffOnly, APIView):
             "orders": orders.count(),
             "revenue": float(paid.aggregate(t=Sum("total"))["t"] or 0),
             "sales": sales,
+            "new_enquiries": Enquiry.objects.filter(is_done=False).count(),
             "recent_orders": AdminOrderSerializer(
                 orders.prefetch_related("items").order_by("-created_at")[:5], many=True
             ).data,
@@ -81,7 +82,7 @@ class AdminOrderUpdateView(StaffOnly, generics.UpdateAPIView):
 
 
 class AdminProductViewSet(StaffOnly, viewsets.ModelViewSet):
-    queryset = Product.objects.select_related("category").order_by("-created_at")
+    queryset = Product.objects.select_related("category").prefetch_related("variants").order_by("-created_at")
     serializer_class = AdminProductSerializer
 
     def perform_destroy(self, instance):
@@ -150,3 +151,37 @@ class AdminSheetsView(StaffOnly, APIView):
             "synced": done, "failed": failed, "error": error, "hint": sheets_hint(error),
             "remaining": Order.objects.filter(VISIBLE, synced_to_sheet=False).count(),
         })
+
+
+from rest_framework import serializers as drf_serializers  # noqa: E402
+
+
+class AdminEnquirySerializer(drf_serializers.ModelSerializer):
+    kind_label = drf_serializers.CharField(source="get_kind_display", read_only=True)
+
+    class Meta:
+        model = Enquiry
+        fields = [
+            "id", "kind", "kind_label", "name", "email", "phone", "business", "order_number",
+            "message", "is_done", "created_at",
+        ]
+        read_only_fields = [f for f in fields if f != "is_done"]
+
+
+class AdminEnquiryListView(StaffOnly, generics.ListAPIView):
+    serializer_class = AdminEnquirySerializer
+
+    def get_queryset(self):
+        qs = Enquiry.objects.all()
+        p = self.request.query_params
+        if p.get("kind"):
+            qs = qs.filter(kind=p["kind"])
+        if p.get("done") in ("true", "false"):
+            qs = qs.filter(is_done=p["done"] == "true")
+        return qs[:200]
+
+
+class AdminEnquiryUpdateView(StaffOnly, generics.UpdateAPIView):
+    queryset = Enquiry.objects.all()
+    serializer_class = AdminEnquirySerializer
+    http_method_names = ["patch"]

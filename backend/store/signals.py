@@ -6,7 +6,8 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from . import sheets
-from .models import Order, Product, Review
+from . import inventory
+from .models import Order, Product, ProductVariant, Review
 
 # Saves that only touch these fields do not change anything worth copying
 IGNORED_FIELDS = {"order_number", "razorpay_order_id", "synced_to_sheet"}
@@ -31,3 +32,9 @@ def update_product_rating(sender, instance, **kwargs):
     )
     rating = Decimal(str(round(stats["avg"], 1))) if stats["n"] else Decimal("0.0")
     Product.objects.filter(pk=instance.product_id).update(rating=rating, rating_count=stats["n"])
+
+
+@receiver(post_save, sender=ProductVariant)
+@receiver(post_delete, sender=ProductVariant)
+def keep_product_in_sync(sender, instance, **kwargs):
+    inventory.sync_product_from_variants(instance.product_id)

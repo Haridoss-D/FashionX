@@ -41,6 +41,13 @@ Django admin (`/admin/` on the backend) by unticking "Is visible". Change delive
 After copying these files run `python manage.py makemigrations store` and `python manage.py migrate`,
 then commit the new file in `backend/store/migrations/`.
 
+## Colours, sizes and prices; details; More menu
+In `/admin > Products`, tick "Different colours or sizes have different prices" and add one row per colour and size
+(price, stock, photo). Add Product highlights, Features, Specifications and Manufacturer info in the same form.
+The More menu has Become a Seller, Notification Settings, Customer Care and Advertise. The three forms land in
+`/admin > Enquiries`. Put your phone, WhatsApp and email in `frontend/src/siteConfig.js`.
+Run `python manage.py makemigrations store` and `migrate` after copying these files.
+
 ## Online payment (Razorpay test mode)
 1. Dashboard > Account & Settings > API Keys > Generate Test Key.
 2. Put the two keys in `backend/.env` as `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`, then restart the backend.

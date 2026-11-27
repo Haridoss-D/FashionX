@@ -14,6 +14,7 @@ def user_payload(user):
     return {
         "id": user.id, "username": user.username, "full_name": user.first_name,
         "email": user.email, "phone": profile.phone, "is_staff": user.is_staff,
+        "notify_orders": profile.notify_orders, "notify_offers": profile.notify_offers,
     }
 
 
